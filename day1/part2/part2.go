@@ -10,12 +10,10 @@ import (
 	"unicode"
 )
 
-var newString string
-
 var spelledNumbers = []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
 func PartTwo() {
-	list := make([]string, 0, 1000)
+	list := make([]string, 0, 1024)
 
 	file, err := os.Open("input.txt")
 	if err != nil {
@@ -39,8 +37,10 @@ func PartTwo() {
 
 		firstDigit := 0
 		lastDigit := 0
+		newString := ""
 		for _, r := range line {
 			fmt.Printf("\t\t %c\n", r)
+
 			if unicode.IsDigit(r) {
 				newString = ""
 				digit, _ := strconv.Atoi(string(r))
@@ -61,7 +61,7 @@ func PartTwo() {
 					newString = ""
 				}
 			}
-			fmt.Println("\t\tThis line's total:", firstDigit, lastDigit)
+			fmt.Println("\t\tThis line's two-digit number:", firstDigit, lastDigit)
 		}
 		total += (firstDigit*10 + lastDigit)
 
