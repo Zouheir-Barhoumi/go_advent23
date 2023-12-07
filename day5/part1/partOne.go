@@ -51,56 +51,68 @@ func createMap(input []string) map[int]int {
 			destStart++
 		}
 	}
+	fmt.Println("Map created!")
 	return resultMap
 }
 
 func mapSeedToLocation(tempSeed int, sToSoil, sToFert, sToWat, sToLight, sToTemp, sToHum, sToLoc map[int]int) (int, int) {
-	tempSoil, found := sToSoil[tempSeed]
-	if !found {
-		// fmt.Println("Seed mapping not found for seed number:", tempSeed)
-		tempSoil = tempSeed
-	} else {
-		fmt.Printf("Seed mapping found %d for seed number %d\n", tempSoil, tempSeed)
-	}
+	// chennel to receive location results
+	locationChannel := make(chan int)
 
-	tempFert, found := sToFert[tempSoil]
-	if !found {
-		// fmt.Println("Fertilizer mapping not found for soil number:", tempSoil)
-		tempFert = tempSoil
-	}
+	// goroutine to calc the location
+	go func() {
 
-	tempWater, found := sToWat[tempFert]
-	if !found {
-		// fmt.Println("Water mapping not found for fertilizer number:", tempFert)
-		tempWater = tempFert
-	}
+		tempSoil, found := sToSoil[tempSeed]
+		if !found {
+			// fmt.Println("Seed mapping not found for seed number:", tempSeed)
+			tempSoil = tempSeed
+		} else {
+			fmt.Printf("Seed mapping found %d for seed number %d\n", tempSoil, tempSeed)
+		}
 
-	tempLight, found := sToLight[tempWater]
-	if !found {
-		// fmt.Println("Light mapping not found for water number:", tempWater)
-		tempLight = tempWater
-	}
+		tempFert, found := sToFert[tempSoil]
+		if !found {
+			// fmt.Println("Fertilizer mapping not found for soil number:", tempSoil)
+			tempFert = tempSoil
+		}
 
-	tempTemp, found := sToTemp[tempLight]
-	if !found {
-		// fmt.Println("Temperature mapping not found for light number:", tempLight)
-		tempTemp = tempLight
-	}
+		tempWater, found := sToWat[tempFert]
+		if !found {
+			// fmt.Println("Water mapping not found for fertilizer number:", tempFert)
+			tempWater = tempFert
+		}
 
-	tempHumid, found := sToHum[tempTemp]
-	if !found {
-		// fmt.Println("Humidity mapping not found for temperature number:", tempTemp)
-		tempHumid = tempTemp
-	}
+		tempLight, found := sToLight[tempWater]
+		if !found {
+			// fmt.Println("Light mapping not found for water number:", tempWater)
+			tempLight = tempWater
+		}
 
-	tempLocation, found := sToLoc[tempHumid]
-	if !found {
-		// fmt.Println("Location mapping not found for humidity number:", tempHumid)
-		tempLocation = tempHumid
-	}
+		tempTemp, found := sToTemp[tempLight]
+		if !found {
+			// fmt.Println("Temperature mapping not found for light number:", tempLight)
+			tempTemp = tempLight
+		}
 
-	// fmt.Printf("seed: %d -> soil: %d -> Fert: %d -> Water: %d -> Light: %d -> Temp: %d -> Hmid: %d -> Location: %d\n", tempSeed, tempSoil, tempFert, tempWater, tempLight, tempTemp, tempHumid, tempLocation)
+		tempHumid, found := sToHum[tempTemp]
+		if !found {
+			// fmt.Println("Humidity mapping not found for temperature number:", tempTemp)
+			tempHumid = tempTemp
+		}
 
+		tempLocation, found := sToLoc[tempHumid]
+		if !found {
+			// fmt.Println("Location mapping not found for humidity number:", tempHumid)
+			tempLocation = tempHumid
+		}
+		fmt.Printf("seed: %d -> soil: %d -> Fert: %d -> Water: %d -> Light: %d -> Temp: %d -> Hmid: %d -> Location: %d\n", tempSeed, tempSoil, tempFert, tempWater, tempLight, tempTemp, tempHumid, tempLocation)
+		locationChannel <- tempLocation
+	}()
+
+	// Wait for location result
+	tempLocation := <-locationChannel
+
+	fmt.Println("Got Location!")
 	return tempSeed, tempLocation
 }
 
@@ -200,6 +212,7 @@ func PartOne() {
 	sToHums := make([]string, 0, (len(seg_strings[6])/6)*segmentLength-4)
 	sToLocs := make([]string, 0, (len(seg_strings[7])/6)*segmentLength-4)
 
+	// create int slices
 	for i, s := range seg_strings {
 		switch i {
 		case 1:
@@ -244,26 +257,26 @@ func PartOne() {
 	// mapShow(sToHum, "TEMPERATURE TO HUMIDITY")
 	// mapShow(sToLoc, "HUMIDITY TO LOCATION")
 
-	// check seeds -till- location
-
-	tempSeed := 13
+	// tempSeed := 13
 
 	// location
-	seed, location := mapSeedToLocation(tempSeed, sToSoil, sToFert, sToWat, sToLight, sToTemp, sToHum, sToLoc)
+	// seed, location := mapSeedToLocation(tempSeed, sToSoil, sToFert, sToWat, sToLight, sToTemp, sToHum, sToLoc)
 
-	fmt.Printf("Locatoin for seed number %d is %d\n", seed, location)
+	// fmt.Printf("Locatoin for seed number %d is %d\n", seed, location)
 
 	fmt.Printf("\n\n----------------------------------------------\n\n")
 	minimum := int(^uint(0) >> 1)
-	for i, v := range seeds {
-		fmt.Printf("SEED: %d  -  %d\n", i, v)
+
+	for i, seed := range seeds {
+		fmt.Printf("SEED: %d  -  %d\n", i, seed)
 		// GET THE LOWEST LOCATION
+		// Goroutine to map the seed and get the location
+
 		_, location := mapSeedToLocation(seed, sToSoil, sToFert, sToWat, sToLight, sToTemp, sToHum, sToLoc)
 
 		if location < minimum {
 			minimum = location
 		}
-
 	}
 	for _, seg := range seg_strings {
 		fmt.Println(seg)
