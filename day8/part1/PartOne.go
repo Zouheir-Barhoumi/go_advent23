@@ -31,7 +31,7 @@ var (
 type Node struct {
 	Name  string
 	Left  *Node
-	RIght *Node
+	Right *Node
 }
 
 func PartOne() {
